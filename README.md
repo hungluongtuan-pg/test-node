@@ -43,8 +43,8 @@ This is simple REST API example for AWS Lambda By Serverless framework with Type
 ## CI/CD & multi-stage deployments
 
 * Created 2 environments: `dev` and `prod`
-  ![alt text](https://github.com/phuthuyxamPg/blog/blob/main/images/app-cicd.png?raw=true)
+  ![alt text](https://github.com/hungluongtuan-pg/test-node/blob/production/image/Screen%20Shot%202022-06-13%20at%2014.29.09.png)
 
 * Auto deploy When push to `dev` or `prod` branch:
-  ![alt text](https://github.com/phuthuyxamPg/blog/blob/main/images/log-build.png?raw=true)
+  ![alt text](https://github.com/hungluongtuan-pg/test-node/blob/production/image/Screen%20Shot%202022-06-13%20at%2014.30.28.png)
 
