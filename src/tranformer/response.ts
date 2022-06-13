@@ -2,7 +2,7 @@ const successStatus = 200;
 const serverErrorStatus = 500;
 const unAuthorizeStatus = 401;
 const badRequestStatus = 400;
-const forbiddenStatus = 403;
+
 
 
 export class BodyResponse <T>{
