@@ -1,19 +1,20 @@
+require('dotenv').config();
 import {v4} from "uuid";
 import * as AWS from 'aws-sdk'
-const connection = new AWS.DynamoDB.DocumentClient({region: "ap-southeast-1"})
-const DB_TABLE = "blog";
+import { string } from "yup/lib/locale";
+const connection = new AWS.DynamoDB.DocumentClient({region: process.env.REGION})
 
 export class BlogService {
 
     fetchBlogById = async (id: string) => {
         const blogItem = await connection
           .get({
-            TableName: DB_TABLE,
+            TableName: String(process.env.DB_TABLE),
             Key: {
                 blogId: id,
             },
           })
-          .promise();  
+          .promise();
         return blogItem['Item'];
     }
 
@@ -25,7 +26,7 @@ export class BlogService {
         }
         await connection
           .put({
-            TableName: DB_TABLE,
+            TableName: String(process.env.DB_TABLE),
             Item: blogItem,
           })
           .promise();
@@ -34,19 +35,19 @@ export class BlogService {
     }
 
     async list() :Promise<object | Error>{
-        const output = await connection.scan({ TableName: DB_TABLE, }).promise();
+        const output = await connection.scan({ TableName: String(process.env.DB_TABLE), }).promise();
         return output;
     }
 
     async findOne(id: string) :Promise<object | Error>{
-        const blog =  this.fetchBlogById(id);
+        const blog = await this.fetchBlogById(id);
         if (!blog) {
             return {
                 status: false,
                 message: "not found blog to id " + id
             }
         }
-        return {blog}
+        return blog
     }
 
     async update(id: string, data: any) :Promise<object | Error>{
@@ -66,7 +67,7 @@ export class BlogService {
 
         await connection
         .put({
-          TableName: DB_TABLE,
+          TableName: String(process.env.DB_TABLE),
           Item: blogItem,
         })
         .promise();
@@ -84,7 +85,7 @@ export class BlogService {
         }
         await connection
         .delete({
-            TableName: DB_TABLE,
+            TableName: String(process.env.DB_TABLE),
             Key: {
                 blogId: id,
             },
