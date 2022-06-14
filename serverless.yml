@@ -1,6 +1,6 @@
 # Welcome to Serverless!
 app: blog-service
-org: tuanhung
+# org: tuanhung
 service: blog-service
 frameworkVersion: "2"
 
@@ -24,6 +24,7 @@ provider:
           Resource: "*"
   stage: dev
   region: ap-southeast-1
+    
 
 functions:
   blogCreate:

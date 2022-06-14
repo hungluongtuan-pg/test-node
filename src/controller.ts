@@ -29,12 +29,9 @@ export const blogList = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
 export const blogDetail = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const result = await blogService.findOne(event.pathParameters?.id as string);
-        if (result['status'] == false) {
-            return TranformerResponse.error("Error at: " + result['message'])
-        } 
         return TranformerResponse.success(result)
     } catch (err) {
-        return TranformerResponse.error("Error at: " + err)
+        return TranformerResponse.error("" + err)
     }
 };
 
@@ -43,9 +40,6 @@ export const blogUpdate = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     const reqBody = JSON.parse(event.body as string);
     try {
         let result = await blogService.update(id, reqBody);
-        if (result['status'] == false) {
-            return TranformerResponse.error("Error at: " + result['message'])
-        } 
         return TranformerResponse.success(result)
     } catch (err) {
         return TranformerResponse.error("Error at: " + err)
@@ -56,9 +50,6 @@ export const blogDelete = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     const id = event.pathParameters?.id as string
     try {
         let result = await blogService.delete(id);
-        if (result['status'] == false) {
-            return TranformerResponse.error("Error at: " + result)
-        }
         return TranformerResponse.success(result)
     } catch (err) {
         return TranformerResponse.error("Error at: " + err)

@@ -1,20 +1,25 @@
-require('dotenv').config();
 import {v4} from "uuid";
 import * as AWS from 'aws-sdk'
-import { string } from "yup/lib/locale";
-const connection = new AWS.DynamoDB.DocumentClient({region: process.env.REGION})
+import * as Config from "../../config";
 
 export class BlogService {
 
+    connection
+
+    constructor(){
+        this.connection = new AWS.DynamoDB.DocumentClient({region: Config.REGION})
+
+    }
+
     fetchBlogById = async (id: string) => {
-        const blogItem = await connection
+        const blogItem = await this.connection
           .get({
-            TableName: String(process.env.DB_TABLE),
+            TableName: String(Config.DB_TABLE),
             Key: {
                 blogId: id,
             },
           })
-          .promise();
+          .promise();  
         return blogItem['Item'];
     }
 
@@ -24,40 +29,35 @@ export class BlogService {
             blogId: v4(),
             createAt: String(new Date())
         }
-        await connection
+        
+        await this.connection
           .put({
-            TableName: String(process.env.DB_TABLE),
+            TableName: String(Config.DB_TABLE),
             Item: blogItem,
           })
           .promise();
-        
+
         return blogItem;
     }
 
     async list() :Promise<object | Error>{
-        const output = await connection.scan({ TableName: String(process.env.DB_TABLE), }).promise();
+        const output = await this.connection.scan({ TableName: String(Config.DB_TABLE), }).promise();
         return output;
     }
 
-    async findOne(id: string) :Promise<object | Error>{
+    async findOne(id: string) :Promise<AWS.DynamoDB.DocumentClient.GetItemOutput | Error>{
         const blog = await this.fetchBlogById(id);
         if (!blog) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
+            throw new Error("Not Found blog");
         }
         return blog
     }
 
-    async update(id: string, data: any) :Promise<object | Error>{
+    async update(id: string, data: any) :Promise<AWS.DynamoDB.DocumentClient.UpdateItemOutput | Error>{
         const blogItemCheck = await this.fetchBlogById(id);
 
         if (!blogItemCheck) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
+            throw new Error("Not Found blog");
         }
 
         const blogItem = {
@@ -65,9 +65,9 @@ export class BlogService {
             blogId: id,
         }
 
-        await connection
+        await this.connection
         .put({
-          TableName: String(process.env.DB_TABLE),
+          TableName: String(Config.DB_TABLE),
           Item: blogItem,
         })
         .promise();
@@ -75,25 +75,20 @@ export class BlogService {
         return blogItem;
     }
 
-    async delete(id: string) :Promise<object | Error>{
+    async delete(id: string) :Promise<AWS.DynamoDB.DocumentClient.DeleteItemOutput | Error>{
         const blog = await this.fetchBlogById(id);
         if (!blog) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
+            throw new Error("Not Found blog");
         }
-        await connection
+        await this.connection
         .delete({
-            TableName: String(process.env.DB_TABLE),
+            TableName: String(Config.DB_TABLE),
             Key: {
                 blogId: id,
             },
         })
         .promise();
 
-        return {
-            status: true
-        };
+        return {};
     }
 }
