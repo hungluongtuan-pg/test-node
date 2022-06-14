@@ -2,6 +2,25 @@ import {v4} from "uuid";
 import * as AWS from 'aws-sdk'
 import * as Config from "../../config";
 
+class Blog {
+    title?: string;
+    rate?: number;
+    description?: string;
+    blogId?: string;
+    phone?: string;
+    createAt?: string;
+
+    constructor(cas : any){
+        this.title = cas.title;
+        this.rate = cas.rate;
+        this.description = cas.description;
+        this.blogId = cas.blogId;
+        this.phone = cas.phone;
+        this.createAt = cas.createAt;
+    }
+
+  }
+  
 export class BlogService {
 
     connection
@@ -11,7 +30,7 @@ export class BlogService {
 
     }
 
-    fetchBlogById = async (id: string) => {
+    fetchBlogById = async (id: string) : Promise<Blog> => {
         const blogItem = await this.connection
           .get({
             TableName: String(Config.DB_TABLE),
@@ -20,7 +39,13 @@ export class BlogService {
             },
           })
           .promise();  
-        return blogItem['Item'];
+        
+        return new Blog(blogItem.Item);
+        
+        
+        // console.log(blogItem.Item);
+
+        // return blogItem['Item'] as blog;
     }
 
     async create(data: any) :Promise<object | Error>{
@@ -45,8 +70,9 @@ export class BlogService {
         return output;
     }
 
-    async findOne(id: string) :Promise<AWS.DynamoDB.DocumentClient.GetItemOutput | Error>{
+    async findOne(id: string) :Promise<Blog>{
         const blog = await this.fetchBlogById(id);
+        
         if (!blog) {
             throw new Error("Not Found blog");
         }
