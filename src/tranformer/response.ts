@@ -31,7 +31,7 @@ export class BodyResponse <T>{
 }
 
 export class TranformerResponse {
-    static success(data: object) {
+    static success(data: object|null) {
         const result = new BodyResponse(successStatus, successStatus, 'success', data)
         return result.toString()
     }

@@ -1,6 +1,7 @@
 import {v4} from "uuid";
 import * as AWS from 'aws-sdk'
 import * as Config from "../../config";
+import { BlogBody } from "../../type/blog"
 
 class Blog {
     title?: string;
@@ -30,7 +31,7 @@ export class BlogService {
 
     }
 
-    fetchBlogById = async (id: string) : Promise<Blog> => {
+    fetchBlogById = async (id: string) : Promise<Blog|null> => {
         const blogItem = await this.connection
           .get({
             TableName: String(Config.DB_TABLE),
@@ -39,16 +40,15 @@ export class BlogService {
             },
           })
           .promise();  
-        
-        return new Blog(blogItem.Item);
-        
-        
-        // console.log(blogItem.Item);
 
-        // return blogItem['Item'] as blog;
+        if (!blogItem || !blogItem.Item) {
+        return null;
+        }
+        
+        return blogItem.Item as Blog;
     }
 
-    async create(data: any) :Promise<object | Error>{
+    async create(data: BlogBody) :Promise<Blog>{
         const blogItem = {
             ...data,
             blogId: v4(),
@@ -62,24 +62,18 @@ export class BlogService {
           })
           .promise();
 
-        return blogItem;
+        return blogItem as Blog;
     }
 
-    async list() :Promise<object | Error>{
-        const output = await this.connection.scan({ TableName: String(Config.DB_TABLE), }).promise();
-        return output;
+    async list() :Promise<object>{
+        return await this.connection.scan({ TableName: String(Config.DB_TABLE), }).promise();
     }
 
-    async findOne(id: string) :Promise<Blog>{
-        const blog = await this.fetchBlogById(id);
-        
-        if (!blog) {
-            throw new Error("Not Found blog");
-        }
-        return blog
+    async findOne(id: string) :Promise<Blog|null>{
+        return await this.fetchBlogById(id);
     }
 
-    async update(id: string, data: any) :Promise<AWS.DynamoDB.DocumentClient.UpdateItemOutput | Error>{
+    async update(id: string, data: BlogBody) :Promise<Blog>{
         const blogItemCheck = await this.fetchBlogById(id);
 
         if (!blogItemCheck) {
@@ -98,10 +92,10 @@ export class BlogService {
         })
         .promise();
       
-        return blogItem;
+        return blogItem as Blog;
     }
 
-    async delete(id: string) :Promise<AWS.DynamoDB.DocumentClient.DeleteItemOutput | Error>{
+    async delete(id: string) :Promise<AWS.DynamoDB.DocumentClient.DeleteItemOutput>{
         const blog = await this.fetchBlogById(id);
         if (!blog) {
             throw new Error("Not Found blog");
