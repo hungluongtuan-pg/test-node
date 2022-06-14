@@ -1,62 +1,83 @@
 import {v4} from "uuid";
 import * as AWS from 'aws-sdk'
-const connection = new AWS.DynamoDB.DocumentClient({region: "ap-southeast-1"})
-const DB_TABLE = "blog";
+import * as Config from "../../config";
+import { BlogBody } from "../../type/blog"
 
+class Blog {
+    title?: string;
+    rate?: number;
+    description?: string;
+    blogId?: string;
+    phone?: string;
+    createAt?: string;
+
+    constructor(cas : any){
+        this.title = cas.title;
+        this.rate = cas.rate;
+        this.description = cas.description;
+        this.blogId = cas.blogId;
+        this.phone = cas.phone;
+        this.createAt = cas.createAt;
+    }
+
+  }
+  
 export class BlogService {
 
-    fetchBlogById = async (id: string) => {
-        const blogItem = await connection
+    connection
+
+    constructor(){
+        this.connection = new AWS.DynamoDB.DocumentClient({region: Config.REGION})
+
+    }
+
+    fetchBlogById = async (id: string) : Promise<Blog|null> => {
+        const blogItem = await this.connection
           .get({
-            TableName: DB_TABLE,
+            TableName: String(Config.DB_TABLE),
             Key: {
                 blogId: id,
             },
           })
           .promise();  
-        return blogItem['Item'];
+
+        if (!blogItem || !blogItem.Item) {
+        return null;
+        }
+        
+        return blogItem.Item as Blog;
     }
 
-    async create(data: any) :Promise<object | Error>{
+    async create(data: BlogBody) :Promise<Blog>{
         const blogItem = {
             ...data,
             blogId: v4(),
             createAt: String(new Date())
         }
-        await connection
+        
+        await this.connection
           .put({
-            TableName: DB_TABLE,
+            TableName: String(Config.DB_TABLE),
             Item: blogItem,
           })
           .promise();
-        
-        return blogItem;
+
+        return blogItem as Blog;
     }
 
-    async list() :Promise<object | Error>{
-        const output = await connection.scan({ TableName: DB_TABLE, }).promise();
-        return output;
+    async list() :Promise<object>{
+        return await this.connection.scan({ TableName: String(Config.DB_TABLE), }).promise();
     }
 
-    async findOne(id: string) :Promise<object | Error>{
-        const blog =  this.fetchBlogById(id);
-        if (!blog) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
-        }
-        return {blog}
+    async findOne(id: string) :Promise<Blog|null>{
+        return await this.fetchBlogById(id);
     }
 
-    async update(id: string, data: any) :Promise<object | Error>{
+    async update(id: string, data: BlogBody) :Promise<Blog>{
         const blogItemCheck = await this.fetchBlogById(id);
 
         if (!blogItemCheck) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
+            throw new Error("Not Found blog");
         }
 
         const blogItem = {
@@ -64,35 +85,30 @@ export class BlogService {
             blogId: id,
         }
 
-        await connection
+        await this.connection
         .put({
-          TableName: DB_TABLE,
+          TableName: String(Config.DB_TABLE),
           Item: blogItem,
         })
         .promise();
       
-        return blogItem;
+        return blogItem as Blog;
     }
 
-    async delete(id: string) :Promise<object | Error>{
+    async delete(id: string) :Promise<AWS.DynamoDB.DocumentClient.DeleteItemOutput>{
         const blog = await this.fetchBlogById(id);
         if (!blog) {
-            return {
-                status: false,
-                message: "not found blog to id " + id
-            }
+            throw new Error("Not Found blog");
         }
-        await connection
+        await this.connection
         .delete({
-            TableName: DB_TABLE,
+            TableName: String(Config.DB_TABLE),
             Key: {
                 blogId: id,
             },
         })
         .promise();
 
-        return {
-            status: true
-        };
+        return {};
     }
 }

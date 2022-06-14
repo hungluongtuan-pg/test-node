@@ -2,7 +2,7 @@ const successStatus = 200;
 const serverErrorStatus = 500;
 const unAuthorizeStatus = 401;
 const badRequestStatus = 400;
-const forbiddenStatus = 403;
+
 
 
 export class BodyResponse <T>{
@@ -31,7 +31,7 @@ export class BodyResponse <T>{
 }
 
 export class TranformerResponse {
-    static success(data: object) {
+    static success(data: object|null) {
         const result = new BodyResponse(successStatus, successStatus, 'success', data)
         return result.toString()
     }
